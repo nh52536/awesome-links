@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model comment {
+  text       String    @db.VarChar(100)
+  name       String    @db.VarChar(100)
+  id_comment Int       @id
+  id_picture Int?
+  picture    picture?  @relation(fields: [id_picture], references: [id_picture], onDelete: NoAction, onUpdate: NoAction)
+  machine    machine[]
+  write      write[]
+}
+
+model location {
+  langitude   String  @db.VarChar(100)
+  longitude   String  @db.VarChar(100)
+  address     String? @db.VarChar(100)
+  city        String? @db.VarChar(100)
+  country     String? @db.VarChar(100)
+  id_location Int     @id
+  place       place[]
+}
+
+model machine {
+  detail     String   @db.VarChar(100)
+  name       String   @db.VarChar(100)
+  id_machine Int      @id
+  id_comment Int?
+  comment    comment? @relation(fields: [id_comment], references: [id_comment], onDelete: NoAction, onUpdate: NoAction)
+  place      place[]
+}
+
+model picture {
+  name       String    @db.VarChar(100)
+  text       String    @db.VarChar(100)
+  detail     String    @db.VarChar(100)
+  id_picture Int       @id
+  comment    comment[]
+}
+
+model place {
+  id_machine  Int
+  id_location Int
+  location    location @relation(fields: [id_location], references: [id_location], onDelete: NoAction, onUpdate: NoAction)
+  machine     machine  @relation(fields: [id_machine], references: [id_machine], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([id_machine, id_location])
+}
+
+model users {
+  email    String  @db.VarChar(100)
+  password String  @db.VarChar(100)
+  id_user  Int     @id
+  write    write[]
+ 
+
+}
+
+model write {
+  id_user    Int
+  id_comment Int
+  comment    comment @relation(fields: [id_comment], references: [id_comment], onDelete: NoAction, onUpdate: NoAction)
+  users      users   @relation(fields: [id_user], references: [id_user], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([id_user, id_comment])
+}
+
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String  @map("id_user")
+  type               String
+  provider           String
+  providerAccountId  String  @map("provider_account_id")
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+  oauth_token_secret String?
+  oauth_token        String?
+
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("id_user")
+  expires      DateTime
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
